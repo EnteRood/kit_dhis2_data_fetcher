@@ -1,0 +1,160 @@
+
+
+QGIS authentication:
+
+- set masterpassword first: 'kaas'
+- create an Authentication Config:
+
+
+
+Constanten?
+
+https://docs.dhis2.org/2.22/en/developer/html/ch01s10.html
+http://<<server>>/api/schemas/constant.json
+
+
+CSV metadata import
+
+    Data elements
+
+    Data element groups
+
+    Category options
+
+    Category option groups
+
+    Organisation units
+
+    Organisation unit groups
+
+    Validation rules
+
+    Option sets  <= time? color etc
+
+
+https://docs.dhis2.org/2.22/en/developer/html/ch01s13.html
+http://play.dhis2.org/demo  admin/district
+
+Analytics
+https://docs.dhis2.org/2.22/en/developer/html/ch01s30.html
+
+
+https://play.dhis2.org/2.28/api/indicators
+
+Hier 1332 organisationUnits:
+
+ou=ou:LEVEL-3
+organisationUnits.geojson?level=2&level=4
+https://play.dhis2.org/2.28/api/organisationUnits.geojson?paging=false&level=3
+https://play.dhis2.org/2.28/api/organisationUnits?paging=false
+https://play.dhis2.org/2.28/api/organisationUnits?pageSize=10000
+<metadata>
+  <pager>
+    <page>1</page>
+    <pageCount>1</pageCount>
+    <total>1338</total>
+    <pageSize>10000</pageSize>
+  </pager>
+  <organisationUnits>
+    <organisationUnit id="tw532BgmPMY">
+      <displayName>ABC Location</displayName>
+    </organisationUnit>
+    <organisationUnit id="Rp268JB6Ne4">
+      <displayName>Adonkia CHP</displayName>
+    </organisationUnit>
+
+Hier: 77 indicatoren:
+https://play.dhis2.org/2.28/api/indicators?pageSize=1000
+<metadata>
+  <pager>
+    <page>1</page>
+    <pageCount>1</pageCount>
+    <total>903</total>
+    <pageSize>1000</pageSize>
+  </pager>
+  <indicators>
+    <indicator id="ReUHfIn0pTQ">
+      <displayName>ANC 1-3 Dropout Rate</displayName>
+    </indicator>
+    <indicator id="Uvn6LCg7dVU">
+      <displayName>ANC 1 Coverage</displayName>
+    </indicator>
+
+Hier: 894 dataElements
+https://play.dhis2.org/2.28/api/dataElements?pageSize=1000
+<metadata>
+  <pager>
+    <page>1</page>
+    <pageCount>1</pageCount>
+    <total>903</total>
+    <pageSize>1000</pageSize>
+  </pager>
+  <dataElements>
+    <dataElement id="V7uKbj1nKNC">
+      <displayName>abc one</displayName>
+    </dataElement>
+    <dataElement id="FTRrcoaog83">
+      <displayName>Accute Flaccid Paralysis (Deaths < 5 yrs)</displayName>
+    </dataElement>
+
+https://play.dhis2.org/2.28/api/dataElements?paging=false
+
+https://play.dhis2.org/2.28/api/dimensions
+
+https://play.dhis2.org/2.28/api/organisationUnits  <total>1332</total>  ???
+https://play.dhis2.org/2.28/api/organisationUnits?pageSize=10000  <= ALLEMAAL
+
+
+https://play.dhis2.org/2.28/api/resources
+
+https://play.dhis2.org/2.28/api/organisationUnitLevels
+organisationUnitLevel id="tTUf91fCytl"><displayName>Chiefdom</displayName></organisationUnitLevel><organisationUnitLevel id="wjP19dkFeIk"><displayName>District</displayName></organisationUnitLevel><organisationUnitLevel id="m9lBJogzE95"><displayName>Facility</displayName></organisationUnitLevel><organisationUnitLevel id="H1KlN4QIauv"><displayName>National</displayName>
+
+
+
+Search filter inside combobox
+https://forum.qt.io/topic/41123/solved-search-filter-inside-combobox-qcombobox/8
+http://www.qtcentre.org/threads/23143-Combobox-entries-filter-as-I-type
+
+
+
+https://play.dhis2.org/2.28/api/analytics.json?
+ dimension=dx:gNAXtpqAqW2;Lzg9LtG1xg3
+&dimension=pe:2009;2010;2011;2012;2013;2014;2015;2016;2017;2018
+&dimension=ou:jUb8gELQApl;fdc6uOvgoji;O6uvpzGd5pu;qhqAxPSTUXp;Vth0fbpFcsO;eIQbndfxQMb;at6UHUQatSo;kJq2mPyFEHo;bL4ooGhyHRQ;jmIPBj66vD6;PMa2VCrupOd;TEQlaapDQoK;lc3eMKXaEfw
+&displayProperty=NAME
+&skipMeta=false
+
+https://play.dhis2.org/2.28/api/analytics.json?dimension=dx:gNAXtpqAqW2;Lzg9LtG1xg3&dimension=pe:2009;2010;2011;2012;2013;2014;2015;2016;2017;2018&dimension=ou:jUb8gELQApl;fdc6uOvgoji;O6uvpzGd5pu;qhqAxPSTUXp;Vth0fbpFcsO;eIQbndfxQMb;at6UHUQatSo;kJq2mPyFEHo;bL4ooGhyHRQ;jmIPBj66vD6;PMa2VCrupOd;TEQlaapDQoK;lc3eMKXaEfw&displayProperty=NAME&skipMeta=false
+
+As an example, to retrieve geo features for all organisation units at level 3 in the organisation unit hierarchy you can use a GET request with the following URL:
+https://play.dhis2.org/2.28/api/geoFeatures.json?ou=ou:LEVEL-3
+
+To retrieve geo features for organisation units at level within the boundary of an organisation unit (e.g. at level 2) you can use this URL:
+https://play.dhis2.org/2.28/api/26/geoFeatures.json?ou=ou:LEVEL-4;O6uvpzGd5pu
+
+
+THIS_WEEK, LAST_WEEK, LAST_4_WEEKS, LAST_12_WEEKS, LAST_52_WEEKS,
+THIS_MONTH, LAST_MONTH, THIS_BIMONTH, LAST_BIMONTH, THIS_QUARTER, LAST_QUARTER,
+THIS_SIX_MONTH, LAST_SIX_MONTH, MONTHS_THIS_YEAR, QUARTERS_THIS_YEAR,
+THIS_YEAR, MONTHS_LAST_YEAR, QUARTERS_LAST_YEAR, LAST_YEAR, LAST_5_YEARS, LAST_12_MONTHS,
+LAST_3_MONTHS, LAST_6_BIMONTHS, LAST_4_QUARTERS, LAST_2_SIXMONTHS, THIS_FINANCIAL_YEAR,
+LAST_FINANCIAL_YEAR, LAST_5_FINANCIAL_YEARS
+
+Days:
+
+Weeks:
+THIS_WEEK, LAST_WEEK, LAST_4_WEEKS, LAST_12_WEEKS, LAST_52_WEEKS,
+Months
+THIS_MONTH, LAST_MONTH, LAST_3_MONTHS, MONTHS_THIS_YEAR, LAST_12_MONTHS, MONTHS_LAST_YEAR
+Bi-months:
+THIS_BIMONTH, LAST_BIMONTH, LAST_6_BIMONTHS
+Quarters:
+THIS_QUARTER, LAST_QUARTER, LAST_4_QUARTERS, QUARTERS_LAST_YEAR, QUARTERS_THIS_YEAR
+Six-months:
+THIS_SIX_MONTH, LAST_SIX_MONTH, LAST_2_SIXMONTHS,
+Financial years:
+THIS_FINANCIAL_YEAR, LAST_FINANCIAL_YEAR, LAST_5_FINANCIAL_YEARS
+Years:
+THIS_YEAR, LAST_YEAR, LAST_5_YEARS,
+
