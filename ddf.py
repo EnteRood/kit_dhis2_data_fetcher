@@ -241,9 +241,10 @@ class DHIS2DataFetcher:
         except RequestsException as e:
             self.info(e)
             pass
-
         jsons = content.decode('utf-8')
         jsono = json.loads(jsons)
+        # easy way to add ALL organisationUnits
+        self.ou_model.appendRow([QStandardItem("ALL"), QStandardItem("ALL")])
         for item in jsono['organisationUnits']:
             display_name = item['displayName']
             ou_id = item['id']
@@ -293,7 +294,12 @@ class DHIS2DataFetcher:
             return
         ou_id = self.ou_model.index(index, 1).data()
         self.info('ou: {} {} {}'.format(index, ou_id, self.ou_model.index(index, 0).data()))
-        if ou_id in self.ou_items:
+        if ou_id == 'ALL':
+            # start with a clean sheet first:
+            self.ou_items = []
+            for idx in range(0, self.ou_model.rowCount()-1):
+                self.ou_items.append(self.ou_model.index(idx, 1).data())
+        elif ou_id in self.ou_items:
             self.ou_items.remove(ou_id)
         else:
             self.ou_items.append(ou_id)
