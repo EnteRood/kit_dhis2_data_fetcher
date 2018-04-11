@@ -84,7 +84,11 @@ class Map(dict):
 
 
 class Response(Map):
-    pass
+    def str(self):
+        strs = []
+        for key in self.keys():
+            strs.append('\n{}: {}'.format(key, self[key]))
+        return '\n'.join(strs)
 
 class NetworkAccessManager(object):
     """
@@ -133,7 +137,7 @@ class NetworkAccessManager(object):
             'exception' - the exception returne dduring execution
     """
 
-    def __init__(self, authid=None, disable_ssl_certificate_validation=False, exception_class=None, debug=False):
+    def __init__(self, authid=None, disable_ssl_certificate_validation=False, exception_class=None, debug=True):
         self.disable_ssl_certificate_validation = disable_ssl_certificate_validation
         self.authid = authid
         self.reply = None
@@ -203,8 +207,8 @@ class NetworkAccessManager(object):
         for k, v in list(headers.items()):
             self.msg_log("%s: %s" % (k, v))
         if method.lower() in ['post', 'put']:
-            if isinstance(body, file):
-                body = body.read()
+            #if isinstance(body, file):
+            #    body = body.read()
             self.reply = func(req, body)
         else:
             self.reply = func(req)
@@ -234,6 +238,7 @@ class NetworkAccessManager(object):
         try:
             self.el.exec_(QEventLoop.ExcludeUserInputEvents)
         except Exception as e:
+            self.msg_log('EEEEEEEEEEEEEEEEEEEEEEEEEE {}'.format(self.http_call_result))
             raise e
 
         if self.reply:
@@ -241,11 +246,18 @@ class NetworkAccessManager(object):
 
         # emit exception in case of error
         if not self.http_call_result.ok:
+            self.msg_log('xxxx {}'.format(self.http_call_result))
+            self.msg_log('xxxx {}'.format(self.http_call_result.exception))
+            self.msg_log('xxxx {}'.format(self.http_call_result.status))
+            self.msg_log('xxxx {}'.format(self.http_call_result.status_code))
+            self.msg_log('xxxx {}'.format(self.exception_class))
+            self.msg_log('xxxx {}'.format(self.http_call_result.reason))
             if self.http_call_result.exception and not self.exception_class:
                 raise self.http_call_result.exception
             else:
                 raise self.exception_class(self.http_call_result.reason)
 
+        self.msg_log('OKOK {}'.format(self.http_call_result.ok))
         return (self.http_call_result, self.http_call_result.content)
 
     #@pyqtSlot()
@@ -278,7 +290,7 @@ class NetworkAccessManager(object):
             # check if errorString is empty, if so, then set err string as
             # reply dump
             if re.match('(.)*server replied: $', self.reply.errorString()):
-                errString = self.reply.errorString() + self.http_call_result.content
+                errString = '{}\n{}'.format(self.reply.errorString(), self.http_call_result.content)
             else:
                 errString = self.reply.errorString()
             # check if self.http_call_result.status_code is available (client abort

@@ -252,7 +252,7 @@ class DHIS2DataFetcher:
             self.ou_model.appendRow([QStandardItem(display_name), QStandardItem(ou_id)])
         self.dlg.cb_ou.setModel(self.ou_model)
 
-        # dx = indicators and dataelements
+        # dx = indicators and data elements
         # indicators and dataElements
         try:
             url = 'https://play.dhis2.org/2.28/api/indicators.json?paging=false&level={}'.format(self.level)
@@ -339,8 +339,8 @@ class DHIS2DataFetcher:
 
     def create_url(self):
         self.info('Updating analytics url')
-        url = 'https://play.dhis2.org/2.28/api/analytics.json?dimension=dx:{}&dimension=pe:{}&dimension=ou:{}&level={}' \
-                .format(';'.join(self.dx_items), ';'.join(self.pe_items), ';'.join(self.ou_items), self.level)
+        url = 'https://play.dhis2.org/2.28/api/analytics.json?dimension=dx:{}&dimension=pe:{}&dimension=ou:{}&level={}'\
+            .format(';'.join(self.dx_items), ';'.join(self.pe_items), ';'.join(self.ou_items), self.level)
         self.dlg.le_url.setText(url)
         self.analytics_url = url
 
@@ -369,10 +369,6 @@ class DHIS2DataFetcher:
         result = self.dlg.exec_()
         # See if OK was pressed
         if result:
-            # Do something useful here - delete the line containing pass and
-            # substitute with your code.
-            #pass
-
             # https://play.dhis2.org/2.28/api/analytics.json?dimension=dx:gNAXtpqAqW2;Lzg9LtG1xg3&dimension=pe:2009;2010;2011;2012;2013;2014;2015;2016;2017;2018&dimension=ou:jUb8gELQApl;fdc6uOvgoji;O6uvpzGd5pu;qhqAxPSTUXp;Vth0fbpFcsO;eIQbndfxQMb;at6UHUQatSo;kJq2mPyFEHo;bL4ooGhyHRQ;jmIPBj66vD6;PMa2VCrupOd;TEQlaapDQoK;lc3eMKXaEfw&displayProperty=NAME&skipMeta=false
 
             #url = 'https://play.dhis2.org/2.28/api/analytics.json?dimension=dx:gNAXtpqAqW2;Lzg9LtG1xg3&dimension=pe:2009;2010;2011;2012;2013;2014;2015;2016;2017;2018&dimension=ou:jUb8gELQApl;fdc6uOvgoji;O6uvpzGd5pu;qhqAxPSTUXp;Vth0fbpFcsO;eIQbndfxQMb;at6UHUQatSo;kJq2mPyFEHo;bL4ooGhyHRQ;jmIPBj66vD6;PMa2VCrupOd;TEQlaapDQoK;lc3eMKXaEfw&displayProperty=NAME&skipMeta=false'
@@ -388,7 +384,12 @@ class DHIS2DataFetcher:
             self.analytics_url = self.dlg.le_url.text()
             url = self.analytics_url
 
-            (response, content) = self.nam.request(url)
+            try:
+                (response, content) = self.nam.request(url, method="GET")
+            except RequestsException as e:
+                self.info('ERROR: {}'.format(e))
+                return
+
             jsons = content.decode('utf-8')
             self.json2features(jsons)
 
@@ -409,11 +410,18 @@ class DHIS2DataFetcher:
         fields.append(QgsField('id', QVariant.String))
         fields.append(QgsField('name', QVariant.String))
 
+        metadata_items = jsono['metaData']['items']
+
         # create as much fields as there are pe_dx combinations
         # eg: 2017_birth, 2016_birth, 2017_measels, 2016_measels
         for pe in jsono['metaData']['dimensions']['pe']:
             for dx in jsono['metaData']['dimensions']['dx']:
-                fields.append(QgsField('{}_{}'.format(pe, dx), QVariant.Double))
+                field_alias = '{} {} ({})'.format(pe, metadata_items[dx]['name'], dx)
+                field = QgsField('{}_{}'.format(pe, dx), QVariant.Double, comment=field_alias)
+                field.setAlias(field_alias)
+                fields.append(field)
+
+
 
         #self.info('Fields: {}'.format(fields))
 
@@ -451,6 +459,7 @@ class DHIS2DataFetcher:
             f = feature_map[row[ou_idx]]
             # attribute key is created from pe_dx string
             attr = '{}_{}'.format(row[pe_idx], row[dx_idx])
+            # Births attended by skilled health personnel (estimated pregancies)
             f.setAttribute(attr, row[value_idx])
 
         self.data_layer.dataProvider().addFeatures(features)
