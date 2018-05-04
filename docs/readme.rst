@@ -26,7 +26,7 @@ Make sure you have installed QGIS-3 (!) This plugin will only work in QGIS 3.x (
 Download plugin
 ...............
 
-Download the latest packaged plugin zip from the repo directory on https://github.com/rduivenvoorde/kit_dhis2_data_fetcher/repo
+Download the latest packaged plugin zip from the `repo directory on Github <https://github.com/rduivenvoorde/kit_dhis2_data_fetcher/tree/master/repo>`_
 
 Install plugin
 ..............
@@ -143,7 +143,7 @@ No close the project and reopen it. The plugin should retrieve both the data and
 make the joins you did earlier and use the saved symbology.
 
 The actual example is in the docs directory saved
-(` example_project.qgs https://raw.githubusercontent.com/rduivenvoorde/kit_dhis2_data_fetcher/master/docs/example_project.qgs`_)
+(`example_project.qgs <https://raw.githubusercontent.com/rduivenvoorde/kit_dhis2_data_fetcher/master/docs/example_project.qgs>`_)
 on github and can be downloaded too to be opened. You should see the styledmap like in the image above.
 
 Note that this is a prototype, some todo's and limitations:
