@@ -121,5 +121,28 @@ and Target field. Then OK.
 
 .. image:: images/join2.png
 
+Looking into the Attribute data now of the Level 2 organisationUnits, reveals 2 new columns (1) which come
+from the DHIS2 data:
+
+.. image:: images/join3.png
+
+Now that data can be used to change the symbology of the map, by for example use a simple Graduated style of 3 Classes:
+
+.. image:: images/styledmap.png
+
+
+The End
+-------
+
+Now you should be able to retrieve data from demo.dhis2.org and combine it with either the geodata from there.
+BUT you can also use your own geodata to create joins (IF you use the same Foreign keys).
+
+Save the project as 'myfirstmap.qgs' somewhere on disk.
+
+No close the project and reopen it. The plugin should retrieve both the data and geodata freshly from the server,
+make the joins you did earlier and use the saved symbology.
+
+The actual example is in the docs directory saved (example_project.qgs) on github and can be downloaded too to be opened:
+
 
 
