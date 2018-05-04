@@ -20,19 +20,20 @@
  *                                                                         *
  ***************************************************************************/
 """
-from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
-from PyQt5.QtGui import QIcon, QStandardItemModel, QStandardItem
-from PyQt5.QtWidgets import QAction
+from qgis.PyQt.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QVariant, QUrl
+from qgis.PyQt.QtGui import QIcon, QStandardItemModel, QStandardItem, QDesktopServices
+from qgis.PyQt.QtWidgets import QAction, QMenu
 
-from qgis.core import QgsMessageLog, Qgis, QgsAuthManager
+from qgis.core import QgsMessageLog, Qgis, QgsAuthManager, QgsVectorLayer, QgsProject, QgsFields, QgsField, QgsFeature
+
+import os.path
+import json
 
 # Initialize Qt resources from file resources.py
 from .resources import *
 # Import the code for the dialog
 from .ddf_dialog import DHIS2DataFetcherDialog
 from .networkaccessmanager import NetworkAccessManager, RequestsException
-import os.path
-import json
 
 
 class DHIS2DataFetcher:
@@ -72,9 +73,16 @@ class DHIS2DataFetcher:
         self.dlg.cb_dx.currentIndexChanged.connect(self.cb_dx_changed)
         self.dlg.cb_level.currentIndexChanged.connect(self.cb_level_changed)
 
+        self.dlg.btn_load_geodata.clicked.connect(self.load_geodata_in_layer)
+        self.dlg.btn_new_dataset.clicked.connect(self.new_dataset)
+
         # Declare instance attributes
         self.actions = []
-        self.menu = self.tr(u'&DHIS2 Data Fetcher')
+        #self.menu = self.tr(u'KIT - DHIS2 Data Fetcher')
+        self.menu = QMenu(self.tr(u'KIT - DHIS2 Data Fetcher'))
+        self.iface.pluginMenu().addMenu(self.menu)
+        self.menu.setIcon(QIcon(':/plugins/DHIS2DataFetcher/icon_kit.png'))
+
         # TODO: We are going to let the user set this up in a future iteration
         self.toolbar = self.iface.addToolBar(u'DHIS2DataFetcher')
         self.toolbar.setObjectName(u'DHIS2DataFetcher')
@@ -95,6 +103,9 @@ class DHIS2DataFetcher:
 
         self.analytics_url = ''
         self.level = 2
+
+        # connect to the iface.projectRead signal to be able to refresh data in a project with a dhis2 layer
+        self.iface.projectRead.connect(self.update_dhis2_project)
 
 
     # noinspection PyMethodMayBeStatic
@@ -178,9 +189,10 @@ class DHIS2DataFetcher:
             self.toolbar.addAction(action)
 
         if add_to_menu:
-            self.iface.addPluginToMenu(
-                self.menu,
-                action)
+            # self.iface.addPluginToMenu(
+            #     self.menu,
+            #     action)
+            self.menu.addAction(action)
 
         self.actions.append(action)
 
@@ -192,12 +204,28 @@ class DHIS2DataFetcher:
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
-        icon_path = ':/plugins/DHIS2DataFetcher/icon.png'
+        icon_path = ':/plugins/DHIS2DataFetcher/icon_kit.png'
         self.add_action(
             icon_path,
-            text=self.tr(u'Fetch DHIS2 Data'),
+            text=self.tr(u'KIT - Fetch DHIS2 Data'),
             callback=self.run,
             parent=self.iface.mainWindow())
+        # note: user has to create an authenticaton configuration with id 'dhis2ap' to authorize the HTTP requests
+        self.nam = NetworkAccessManager(authid="dhis2ap", exception_class=RequestsException, debug=False)
+
+        # help menu
+        icon_path = ':/plugins/DHIS2DataFetcher/icon_kit.png'
+        self.add_action(
+            icon_path,
+            text=self.tr(u'Code and (preliminary) Documentation'),
+            callback=self.show_help,
+            add_to_toolbar=False,
+            parent=self.iface.mainWindow())
+
+    def show_help(self):
+        #docs = os.path.join(os.path.dirname(__file__), "help/html", "index.html")
+        #QDesktopServices.openUrl(QUrl("file:" + docs))
+        QDesktopServices.openUrl(QUrl("https://duif.net"))
 
     def initAuthentication(self):
 
@@ -225,10 +253,6 @@ class DHIS2DataFetcher:
         # TODO: zelf een authconfig aanmaken hier op basis van ???
         # TODO: ALS gebruiker dit heeft gedaan, dan achterhalen wat the authid is van zijn/haar config
 
-
-        self.nam = NetworkAccessManager(authid="dhis2ap", exception_class=RequestsException)
-
-
         # ou = Organisational Units
         self.ou_model = QStandardItemModel()
         self.pe_model = QStandardItemModel()
@@ -253,24 +277,40 @@ class DHIS2DataFetcher:
         self.dlg.cb_ou.setModel(self.ou_model)
 
         # dx = indicators and data elements
-        # indicators and dataElements
+        # indicators
         try:
+            # indicators
             url = 'https://play.dhis2.org/2.28/api/indicators.json?paging=false&level={}'.format(self.level)
             (response, content) = self.nam.request(url)
         except RequestsException as e:
             self.info(e)
             pass
-
-        jsons = content.decode('utf-8')
-        jsono = json.loads(jsons)
+        jsono = json.loads(content.decode('utf-8'))
         for item in jsono['indicators']:
             display_name = item['displayName']
             ou_id = item['id']
             #self.info('{} - {}'.format(ou_id, display_name))
             self.dx_model.appendRow([QStandardItem(display_name), QStandardItem(ou_id)])
+
+        # dataElements
+        try:
+            # dataelements
+            url = 'https://play.dhis2.org/2.28/api/dataElements.json?paging=false&level={}'.format(self.level)
+            (response, content) = self.nam.request(url)
+        except RequestsException as e:
+            self.info(e)
+            pass
+        jsono = json.loads(content.decode('utf-8'))
+        for item in jsono['dataElements']:
+            display_name = item['displayName']
+            ou_id = item['id']
+            #self.info('{} - {}'.format(ou_id, display_name))
+            self.dx_model.appendRow([QStandardItem(display_name), QStandardItem(ou_id)])
+
         self.dlg.cb_dx.setModel(self.dx_model)
 
-        for pe in ['2017', '2016', '2015', 'LAST_YEAR', 'LAST_5_YEARS']:
+        for pe in ['2018', '2017', '2016', '2015', 'LAST_YEAR', 'LAST_5_YEARS',
+                   'THIS_MONTH', 'LAST_MONTH', 'LAST_3_MONTHS', 'MONTHS_THIS_YEAR', 'LAST_12_MONTHS']:
             self.pe_model.appendRow([QStandardItem(pe), QStandardItem(pe)])
         self.dlg.cb_pe.setModel(self.pe_model)
 
@@ -286,7 +326,35 @@ class DHIS2DataFetcher:
 
         self.gui_inited = True
         self.create_url()
-        self.info('Finish INIT dropdowns')
+        #self.info('Finish INIT dropdowns')
+
+    def load_geodata_in_layer(self):
+        self.info('Loading level {} geodata'.format(self.level))
+
+        # try:
+        #     url = 'https://play.dhis2.org/2.28/api/organisationUnits.geojson?paging=false&level={}'.format(self.level)
+        #     (response, content) = self.nam.request(url)
+        # except RequestsException as e:
+        #     self.info(e)
+        #     pass
+        # import tempfile
+        # from datetime import datetime
+        # file_name = tempfile.gettempdir() + os.sep + 'dhis2geodata_' + datetime.now().strftime("%Y%m%d%H%M%S") + '.geojson'
+        # with open(file_name, 'wb') as f:
+        #     f.write(content)
+        # geojson_layer = QgsVectorLayer(file_name, 'Level {} organisationUnits'.format(self.level), 'ogr')
+
+        url = "https://play.dhis2.org/2.28/api/organisationUnits.geojson?paging=false&level={} authcfg='dhis2ap'".format(self.level)
+        geojson_layer = QgsVectorLayer(url, 'Level {} organisationUnits'.format(self.level), 'ogr')
+        if geojson_layer.isValid():
+            QgsProject.instance().addMapLayer(geojson_layer)
+        else:
+            self.info('Problem loading: {}'.format(url))
+
+    def new_dataset(self):
+        self.info('Clean dataset url')
+        # by setting another level, the url is cleaned
+        self.cb_level_changed(0)
 
     def cb_ou_changed(self, index):
         self.info('ou index change: {}'.format(index))
@@ -306,11 +374,11 @@ class DHIS2DataFetcher:
         self.create_url()
 
     def cb_pe_changed(self, index):
-        self.info('pe index change: {}'.format(index))
+        #self.info('pe index change: {}'.format(index))
         if index < 0:
             return
         pe_id = self.pe_model.index(index, 1).data()
-        self.info('Selected pe: {}'.format(pe_id))  # id
+        #self.info('Selected pe: {}'.format(pe_id))  # id
         if pe_id in self.pe_items:
             self.pe_items.remove(pe_id)
         else:
@@ -318,11 +386,11 @@ class DHIS2DataFetcher:
         self.create_url()
 
     def cb_dx_changed(self, index):
-        self.info('dx index change: {}'.format(index))
+        #self.info('dx index change: {}'.format(index))
         if index < 0:
             return
         dx_id = self.dx_model.index(index, 1).data()
-        self.info('Selected dx: {} {} {}'.format(index, dx_id, self.dx_model.index(index, 0).data()))  # displayName
+        #self.info('Selected dx: {} {} {}'.format(index, dx_id, self.dx_model.index(index, 0).data()))  # displayName
         if dx_id in self.dx_items:
             self.dx_items.remove(dx_id)
         else:
@@ -333,7 +401,7 @@ class DHIS2DataFetcher:
         # redo dropdowns to the Level chossen
         self.gui_inited = False
         self.level = self.dlg.cb_level.currentText()
-        self.info('Level change to {}'.format(self.level))
+        #self.info('Level change to {}'.format(self.level))
         self.initDropdowns()
         self.create_url()
 
@@ -348,11 +416,12 @@ class DHIS2DataFetcher:
         """Removes the plugin menu item and icon from QGIS GUI."""
         for action in self.actions:
             self.iface.removePluginMenu(
-                self.tr(u'&DHIS2 Data Fetcher'),
+                self.tr(u'KIT - DHIS2 Data Fetcher'),
                 action)
             self.iface.removeToolBarIcon(action)
         # remove the toolbar
         del self.toolbar
+        self.iface.projectRead.disconnect(self.update_dhis2_project)
 
 
     def run(self):
@@ -383,28 +452,38 @@ class DHIS2DataFetcher:
             # ALWAYS grab url from dialog, as it is possible that user copied changed something there
             self.analytics_url = self.dlg.le_url.text()
             url = self.analytics_url
+            self.json2features(url)
 
-            try:
-                (response, content) = self.nam.request(url, method="GET")
-            except RequestsException as e:
-                self.info('ERROR: {}'.format(e))
-                return
+    def update_dhis2_project(self):
+        # now go over layers and check if they have a dhis2_url property
+        p = QgsProject.instance()
+        for lname in p.mapLayers():
+            lyr = p.mapLayer(lname)
+            url = lyr.customProperty('dhis2_url', '')
+            if len(url) > 0:
+                #self.info('OK url !!')
+                self.info(url)
+                # if so: fetch fresh data, but reuse layer
+                self.json2features(url, lyr)
 
-            jsons = content.decode('utf-8')
-            self.json2features(jsons)
+    def json2features(self, url, data_layer=None):
+        try:
+            (response, content) = self.nam.request(url, method="GET")
+        except RequestsException as e:
+            self.info('ERROR: {}'.format(e))
+            return
 
+        jsons = content.decode('utf-8')
 
-    def json2features(self, jsons):
         jsono = json.loads(jsons)
 
-        print(json.dumps(jsono, sort_keys=True, indent=4))
+        #print(json.dumps(jsono, sort_keys=True, indent=4))
         #print(jsono['height'])
 
-        from qgis.PyQt.QtCore import QVariant
-        from qgis.core import QgsVectorLayer, QgsProject, QgsFields, QgsField, QgsFeature
         # creating memory layer with uri:
         # https://qgis.org/api/qgsmemoryproviderutils_8cpp_source.html
-        self.data_layer = QgsVectorLayer('none', 'features', 'memory')
+        if data_layer is None:
+            data_layer = QgsVectorLayer('none', 'DHIS2 data', 'memory')
 
         fields = QgsFields()
         fields.append(QgsField('id', QVariant.String))
@@ -416,17 +495,21 @@ class DHIS2DataFetcher:
         # eg: 2017_birth, 2016_birth, 2017_measels, 2016_measels
         for pe in jsono['metaData']['dimensions']['pe']:
             for dx in jsono['metaData']['dimensions']['dx']:
-                field_alias = '{} {} ({})'.format(pe, metadata_items[dx]['name'], dx)
+                #field_alias = '{} {} ({})'.format(pe, metadata_items[dx]['name'], dx)
+                field_alias = '{} {}'.format(pe, metadata_items[dx]['name'])
                 field = QgsField('{}_{}'.format(pe, dx), QVariant.Double, comment=field_alias)
                 field.setAlias(field_alias)
                 fields.append(field)
 
-
-
         #self.info('Fields: {}'.format(fields))
 
-        self.data_layer.dataProvider().addAttributes(fields)
-        self.data_layer.updateFields()
+        # clean up first
+        data_layer.dataProvider().deleteAttributes(data_layer.dataProvider().attributeIndexes())
+        data_layer.updateFields()
+
+        # set new attributes
+        data_layer.dataProvider().addAttributes(fields)
+        data_layer.updateFields()
 
         # array with all features
         features = []
@@ -462,9 +545,17 @@ class DHIS2DataFetcher:
             # Births attended by skilled health personnel (estimated pregancies)
             f.setAttribute(attr, row[value_idx])
 
-        self.data_layer.dataProvider().addFeatures(features)
+        data_layer.dataProvider().addFeatures(features)
 
-        QgsProject.instance().addMapLayer(self.data_layer)
+        # add it to the project
+        QgsProject.instance().addMapLayer(data_layer)
+        # 'save' the data url of the layer into the project properties
+        # https://docs.qgis.org/testing/en/docs/pyqgis_developer_cookbook/settings.html
+        data_layer.setCustomProperty("dhis2_url", url)
+
+
+
+
 
 
 

@@ -1,5 +1,6 @@
 <RCC>
-    <qresource prefix="/plugins/DHIS2DataFetcher" >
-        <file>icon.png</file>
-    </qresource>
+  <qresource prefix="/plugins/DHIS2DataFetcher">
+    <file>icon_kit.png</file>
+    <file>icon.png</file>
+  </qresource>
 </RCC>

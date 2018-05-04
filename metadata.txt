@@ -7,14 +7,19 @@
 # This file should be included when you package your plugin.# Mandatory items:
 
 [general]
-name=DHIS2 Data Fetcher
+name=Kit - DHIS2 Data Fetcher
 qgisMinimumVersion=3.0
-description=Fetch Data from DHIS2
+description=KIT plugin to Fetch Data and Geodata from DHIS2 demo server
 version=0.1
 author=Zuidt
 email=richard@zuidt.nl
 
-about=This is the port of Plugin Builder to QGIS 3 API
+about=This plugin prototype fetches data or geodata from the DHIS2 demo server.
+    Currently the server url is hardcoded.
+    You need to create a authentication configration named 'dhis2ap' with demo credentials.
+    You can either retrieve level 2,3,4 geojson and have a point or polygon layer.
+    Or you retrieve Indicators and Datelements for the OrganisationalUnits to be joined to above geodata.
+    Note: it is not possible to retrieve ALL level 4 org-units in one go (url becomes too long)
 
 tracker=http://bugs
 repository=http://repo
@@ -30,9 +35,9 @@ tags=python
 
 homepage=http://homepage
 category=Plugins
-icon=icon.png
+icon=icon_kit.png
 # experimental flag
-experimental=True
+experimental=False
 
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False

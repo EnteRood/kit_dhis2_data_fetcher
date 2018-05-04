@@ -160,8 +160,14 @@ THIS_YEAR, LAST_YEAR, LAST_5_YEARS,
 
 
 Project properties opslaan:
-
 https://docs.qgis.org/testing/en/docs/pyqgis_developer_cookbook/settings.html
+
+OF er plugin layers van maken???
+QgsPluginLayer API
+https://github.com/sourcepole/qgis-watermark-plugin
+
+
+
 
 https://play.dhis2.org/2.28/api/analytics.json?dimension=dx:gNAXtpqAqW2&dimension=pe:2017&dimension=ou:ALL;O6uvpzGd5pu;fdc6uOvgoji;lc3eMKXaEfw;jUb8gELQApl;PMa2VCrupOd;kJq2mPyFEHo;qhqAxPSTUXp;Vth0fbpFcsO;jmIPBj66vD6;TEQlaapDQoK;bL4ooGhyHRQ;eIQbndfxQMb&level=2
 
