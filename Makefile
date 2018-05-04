@@ -38,17 +38,22 @@ LOCALES =
 # translation
 SOURCES = \
 	__init__.py \
-	ddf.py ddf_dialog.py
+	ddf.py ddf_dialog.py \
+	networkaccessmanager.py
 
 PLUGINNAME = DHIS2DataFetcher
 
+VERSION=$(shell cat metadata.txt | grep version= | sed -e 's,version=,,')
+
+
 PY_FILES = \
 	__init__.py \
-	ddf.py ddf_dialog.py
+	ddf.py ddf_dialog.py \
+	networkaccessmanager.py
 
 UI_FILES = ddf_dialog_base.ui
 
-EXTRAS = metadata.txt icon.png
+EXTRAS = metadata.txt icon.png icon_kit.png
 
 EXTRA_DIRS =
 
@@ -67,7 +72,7 @@ PLUGIN_UPLOAD = $(c)/plugin_upload.py
 
 RESOURCE_SRC=$(shell grep '^ *<file' resources.qrc | sed 's@</file>@@g;s/.*>//g' | tr '\n' ' ')
 
-QGISDIR=.qgis2
+QGISDIR=.local/share/QGIS/QGIS3/profiles/default
 
 default: compile
 
@@ -78,6 +83,17 @@ compile: $(COMPILED_RESOURCE_FILES)
 
 %.qm : %.ts
 	$(LRELEASE) $<
+
+# Create a symlink for development in the default profile python plugins dir
+symlink:
+	mkdir -p $(HOME)/$(QGISDIR)/python/plugins
+	# in case there is a deployed version: remove it
+	rm -rf $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
+	ln -s `pwd` $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
+
+# Remove the created symlink
+desymlink:
+	rm -Rf $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
 
 test: compile transcompile
 	@echo
@@ -97,7 +113,8 @@ test: compile transcompile
 	@echo "e.g. source run-env-linux.sh <path to qgis install>; make test"
 	@echo "----------------------"
 
-deploy: compile doc transcompile
+#deploy: compile doc transcompile
+deploy: compile
 	@echo
 	@echo "------------------------------------------"
 	@echo "Deploying plugin to your .qgis2 directory."
@@ -111,9 +128,9 @@ deploy: compile doc transcompile
 	cp -vf $(COMPILED_RESOURCE_FILES) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
 	cp -vf $(EXTRAS) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
 	cp -vfr i18n $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
-	cp -vfr $(HELP) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)/help
+	#cp -vfr $(HELP) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)/help
 	# Copy extra directories if any
-	(foreach EXTRA_DIR,(EXTRA_DIRS), cp -R (EXTRA_DIR) (HOME)/(QGISDIR)/python/plugins/(PLUGINNAME)/;)
+	#(foreach EXTRA_DIR,(EXTRA_DIRS), cp -R (EXTRA_DIR) (HOME)/(QGISDIR)/python/plugins/(PLUGINNAME)/;)
 
 
 # The dclean target removes compiled python files from plugin directory
@@ -134,14 +151,6 @@ derase:
 	@echo "-------------------------"
 	rm -Rf $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
 
-# Create a symlink for development in the default profile python plugins dir
-symlink:
-	mkdir -p $(HOME)/.local/share/QGIS/QGIS3/profiles/default/python/plugins
-	ln -s `pwd` $(HOME)/.local/share/QGIS/QGIS3/profiles/default/python/plugins/$(PLUGINNAME)
-# Remove the created symlink
-desymlink:
-	rm ~/.local/share/QGIS/QGIS3/profiles/default/python/plugins/$(PLUGINNAME)
-
 zip: deploy dclean
 	@echo
 	@echo "---------------------------"
@@ -149,8 +158,9 @@ zip: deploy dclean
 	@echo "---------------------------"
 	# The zip target deploys the plugin and creates a zip file with the deployed
 	# content. You can then upload the zip file on http://plugins.qgis.org
-	rm -f $(PLUGINNAME).zip
-	cd $(HOME)/$(QGISDIR)/python/plugins; zip -9r $(CURDIR)/$(PLUGINNAME).zip $(PLUGINNAME)
+	rm -f $(PLUGINNAME)*.zip
+	cd $(HOME)/$(QGISDIR)/python/plugins; zip -9r $(CURDIR)/$(PLUGINNAME)_$(VERSION).zip $(PLUGINNAME)
+	mv $(CURDIR)/$(PLUGINNAME)_$(VERSION).zip repo
 
 package: compile
 	# Create a zip package of the plugin named $(PLUGINNAME).zip.

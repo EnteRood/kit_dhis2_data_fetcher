@@ -225,7 +225,7 @@ class DHIS2DataFetcher:
     def show_help(self):
         #docs = os.path.join(os.path.dirname(__file__), "help/html", "index.html")
         #QDesktopServices.openUrl(QUrl("file:" + docs))
-        QDesktopServices.openUrl(QUrl("https://duif.net"))
+        QDesktopServices.openUrl(QUrl("https://github.com/rduivenvoorde/kit_dhis2_data_fetcher/"))
 
     def initAuthentication(self):
 
