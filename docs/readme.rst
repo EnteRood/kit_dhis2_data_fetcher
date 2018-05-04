@@ -142,7 +142,17 @@ Save the project as 'myfirstmap.qgs' somewhere on disk.
 No close the project and reopen it. The plugin should retrieve both the data and geodata freshly from the server,
 make the joins you did earlier and use the saved symbology.
 
-The actual example is in the docs directory saved (example_project.qgs) on github and can be downloaded too to be opened:
+The actual example is in the docs directory saved
+(` example_project.qgs https://raw.githubusercontent.com/rduivenvoorde/kit_dhis2_data_fetcher/master/docs/example_project.qgs`_)
+on github and can be downloaded too to be opened. You should see the styledmap like in the image above.
+
+Note that this is a prototype, some todo's and limitations:
+
+- more user friendly dialog
+
+- overcome the limitation to retrieve all Level 4 organisation units (server returns a 'url too long')
+
+- and more...
 
 
 
