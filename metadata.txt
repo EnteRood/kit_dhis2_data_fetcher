@@ -10,7 +10,7 @@
 name=Kit - DHIS2 Data Fetcher
 qgisMinimumVersion=3.0
 description=KIT plugin to Fetch Data and Geodata from DHIS2 demo server
-version=0.1
+version=0.1.1
 author=Zuidt
 email=richard@zuidt.nl
 
@@ -21,24 +21,22 @@ about=This plugin prototype fetches data or geodata from the DHIS2 demo server.
     Or you retrieve Indicators and Datelements for the OrganisationalUnits to be joined to above geodata.
     Note: it is not possible to retrieve ALL level 4 org-units in one go (url becomes too long)
 
-tracker=http://bugs
-repository=http://repo
+tracker=https://github.com/rduivenvoorde/kit_dhis2_data_fetcher/issues
+repository=https://github.com/rduivenvoorde/kit_dhis2_data_fetcher
 # End of mandatory metadata
 
 # Recommended items:
 
 # Uncomment the following line and add your changelog:
-# changelog=
+changelog=
+    0.1.1       remove future module
+    0.1.0       initial public release
 
 # Tags are comma separated with spaces allowed
-tags=python
+tags=python dhis2
 
-homepage=http://homepage
+homepage=https://github.com/rduivenvoorde/kit_dhis2_data_fetcher
 category=Plugins
 icon=icon_kit.png
 # experimental flag
 experimental=False
-
-# deprecated flag (applies to the whole plugin, not just a single version)
-deprecated=False
-
