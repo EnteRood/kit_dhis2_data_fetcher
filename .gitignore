@@ -3,6 +3,7 @@
 .idea
 help
 test
+*.swp
 
 ### Python template
 # Byte-compiled / optimized / DLL files

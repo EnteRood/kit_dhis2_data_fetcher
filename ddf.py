@@ -6,6 +6,7 @@
  Fetch Data from DHIS2
                               -------------------
         begin                : 2018-02-14
+        begin                : 2018-02-14
         git sha              : $Format:%H$
         copyright            : (C) 2018 by Zuidt
         email                : richard@zuidt.nl
@@ -22,9 +23,10 @@
 """
 from qgis.PyQt.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QVariant, QUrl
 from qgis.PyQt.QtGui import QIcon, QStandardItemModel, QStandardItem, QDesktopServices
-from qgis.PyQt.QtWidgets import QAction, QMenu
+from qgis.PyQt.QtWidgets import QAction, QMenu, QDialog, QDialogButtonBox, QSizePolicy, QVBoxLayout
 
-from qgis.core import QgsMessageLog, Qgis, QgsAuthManager, QgsVectorLayer, QgsProject, QgsFields, QgsField, QgsFeature
+from qgis.core import QgsMessageLog, Qgis, QgsApplication, QgsVectorLayer, QgsProject, QgsFields, QgsField, QgsFeature
+from qgis.gui import QgsAuthConfigSelect
 
 import os.path
 import json
@@ -66,7 +68,7 @@ class DHIS2DataFetcher:
                 QCoreApplication.installTranslator(self.translator)
 
         # Create the dialog (after translation) and keep reference
-        self.dlg = DHIS2DataFetcherDialog()
+        self.dlg = DHIS2DataFetcherDialog(self.iface.mainWindow())
 
         self.dlg.cb_ou.currentIndexChanged.connect(self.cb_ou_changed)
         self.dlg.cb_pe.currentIndexChanged.connect(self.cb_pe_changed)
@@ -75,6 +77,9 @@ class DHIS2DataFetcher:
 
         self.dlg.btn_load_geodata.clicked.connect(self.load_geodata_in_layer)
         self.dlg.btn_new_dataset.clicked.connect(self.new_dataset)
+        self.dlg.btn_api_config.clicked.connect(self.selectAuthConfig)
+
+        self.auth_dlg = None
 
         # Declare instance attributes
         self.actions = []
@@ -89,8 +94,12 @@ class DHIS2DataFetcher:
 
         self.MSG_TITLE = "DHIS2 datafetcher"
 
+        self.api_url = 'https://play.dhis2.org/2.29/api/'
+        self.api_url = None  # url as defined by user in authoristation profile
+        self.auth_id = None  # authorisation id to be used in nam creation AND vectorlayer creation uri
+
         self.gui_inited = False
-        self.nam = None  # created in gui init
+        self.nam = None  # created in gui during authorisation profile choice
 
         self.ou_items = []
         self.pe_items = []
@@ -210,8 +219,6 @@ class DHIS2DataFetcher:
             text=self.tr(u'KIT - Fetch DHIS2 Data'),
             callback=self.run,
             parent=self.iface.mainWindow())
-        # note: user has to create an authenticaton configuration with id 'dhis2ap' to authorize the HTTP requests
-        self.nam = NetworkAccessManager(authid="dhis2ap", exception_class=RequestsException, debug=False)
 
         # help menu
         icon_path = ':/plugins/DHIS2DataFetcher/icon_kit.png'
@@ -227,22 +234,22 @@ class DHIS2DataFetcher:
         #QDesktopServices.openUrl(QUrl("file:" + docs))
         QDesktopServices.openUrl(QUrl("https://github.com/rduivenvoorde/kit_dhis2_data_fetcher/"))
 
-    def initAuthentication(self):
-
-        # https://docs.qgis.org/testing/en/docs/pyqgis_developer_cookbook/authentication.html#term-authentication-config
-        authMgr = QgsAuthManager.instance()
-        if authMgr.masterPasswordIsSet():
-            msg = 'Authentication master password not recognized'
-            assert authMgr.masterPasswordSame("your master password"), msg
-        else:
-            msg = 'Master password could not be set'
-            # The verify parameter check if the hash of the password was
-            # already saved in the authentication db
-            assert authMgr.setMasterPassword("your master password", verify=True), msg
+    # def initAuthentication(self):
+    #
+    #     # https://docs.qgis.org/testing/en/docs/pyqgis_developer_cookbook/authentication.html#term-authentication-config
+    #     authMgr = QgsAuthManager.instance()
+    #     if authMgr.masterPasswordIsSet():
+    #         msg = 'Authentication master password not recognized'
+    #         assert authMgr.masterPasswordSame("your master password"), msg
+    #     else:
+    #         msg = 'Master password could not be set'
+    #         # The verify parameter check if the hash of the password was
+    #         # already saved in the authentication db
+    #         assert authMgr.setMasterPassword("your master password", verify=True), msg
 
     def initDropdowns(self):
 
-        self.info('INIT dropdowns')
+        #self.info('INIT dropdowns')
 
         # we have to fill drop downs
         # ??? without authentication ???
@@ -260,11 +267,12 @@ class DHIS2DataFetcher:
 
         # ou = Organisational Units
         try:
-            url = 'https://play.dhis2.org/2.28/api/organisationUnits.json?paging=false&level={}'.format(self.level)
+            url = '{}organisationUnits.json?paging=false&level={}'.format(self.api_url, self.level)
             (response, content) = self.nam.request(url)
         except RequestsException as e:
             self.info(e)
-            pass
+            #pass
+
         jsons = content.decode('utf-8')
         jsono = json.loads(jsons)
         # easy way to add ALL organisationUnits
@@ -280,7 +288,7 @@ class DHIS2DataFetcher:
         # indicators
         try:
             # indicators
-            url = 'https://play.dhis2.org/2.28/api/indicators.json?paging=false&level={}'.format(self.level)
+            url = '{}indicators.json?paging=false&level={}'.format(self.api_url, self.level)
             (response, content) = self.nam.request(url)
         except RequestsException as e:
             self.info(e)
@@ -295,7 +303,7 @@ class DHIS2DataFetcher:
         # dataElements
         try:
             # dataelements
-            url = 'https://play.dhis2.org/2.28/api/dataElements.json?paging=false&level={}'.format(self.level)
+            url = '{}dataElements.json?paging=false&level={}'.format(self.api_url, self.level)
             (response, content) = self.nam.request(url)
         except RequestsException as e:
             self.info(e)
@@ -328,6 +336,7 @@ class DHIS2DataFetcher:
         self.create_url()
         #self.info('Finish INIT dropdowns')
 
+
     def load_geodata_in_layer(self):
         self.info('Loading level {} geodata'.format(self.level))
 
@@ -344,7 +353,7 @@ class DHIS2DataFetcher:
         #     f.write(content)
         # geojson_layer = QgsVectorLayer(file_name, 'Level {} organisationUnits'.format(self.level), 'ogr')
 
-        url = "https://play.dhis2.org/2.28/api/organisationUnits.geojson?paging=false&level={} authcfg='dhis2ap'".format(self.level)
+        url = "{}organisationUnits.geojson?paging=false&level={} authcfg='{}'".format(self.api_url, self.level, self.auth_id)
         geojson_layer = QgsVectorLayer(url, 'Level {} organisationUnits'.format(self.level), 'ogr')
         if geojson_layer.isValid():
             QgsProject.instance().addMapLayer(geojson_layer)
@@ -352,12 +361,12 @@ class DHIS2DataFetcher:
             self.info('Problem loading: {}'.format(url))
 
     def new_dataset(self):
-        self.info('Clean dataset url')
+        #self.info('Clean dataset url')
         # by setting another level, the url is cleaned
         self.cb_level_changed(0)
 
     def cb_ou_changed(self, index):
-        self.info('ou index change: {}'.format(index))
+        #self.info('ou index change: {}'.format(index))
         if index < 0:
             return
         ou_id = self.ou_model.index(index, 1).data()
@@ -406,9 +415,9 @@ class DHIS2DataFetcher:
         self.create_url()
 
     def create_url(self):
-        self.info('Updating analytics url')
-        url = 'https://play.dhis2.org/2.28/api/analytics.json?dimension=dx:{}&dimension=pe:{}&dimension=ou:{}&level={}'\
-            .format(';'.join(self.dx_items), ';'.join(self.pe_items), ';'.join(self.ou_items), self.level)
+        #self.info('Updating analytics url')
+        url = '{}analytics.json?dimension=dx:{}&dimension=pe:{}&dimension=ou:{}&level={}'\
+            .format(self.api_url, ';'.join(self.dx_items), ';'.join(self.pe_items), ';'.join(self.ou_items), self.level)
         self.dlg.le_url.setText(url)
         self.analytics_url = url
 
@@ -423,12 +432,24 @@ class DHIS2DataFetcher:
         del self.toolbar
         self.iface.projectRead.disconnect(self.update_dhis2_project)
 
-
     def run(self):
         """
 
         :return:
         """
+        if self.api_url is None:
+            if not self.selectAuthConfig():
+                # returns False on failure
+                # TODO message?
+                return
+
+        # still None ?
+        if self.api_url is None:
+            msg = self.tr("Please create or select an Authorisation Profile first (see help). Not able to run without api url")
+            self.iface.messageBar().pushCritical(self.MSG_TITLE, msg)
+            self.info(msg)
+            return
+
         if not self.gui_inited:
             self.initDropdowns()
 
@@ -438,17 +459,6 @@ class DHIS2DataFetcher:
         result = self.dlg.exec_()
         # See if OK was pressed
         if result:
-            # https://play.dhis2.org/2.28/api/analytics.json?dimension=dx:gNAXtpqAqW2;Lzg9LtG1xg3&dimension=pe:2009;2010;2011;2012;2013;2014;2015;2016;2017;2018&dimension=ou:jUb8gELQApl;fdc6uOvgoji;O6uvpzGd5pu;qhqAxPSTUXp;Vth0fbpFcsO;eIQbndfxQMb;at6UHUQatSo;kJq2mPyFEHo;bL4ooGhyHRQ;jmIPBj66vD6;PMa2VCrupOd;TEQlaapDQoK;lc3eMKXaEfw&displayProperty=NAME&skipMeta=false
-
-            #url = 'https://play.dhis2.org/2.28/api/analytics.json?dimension=dx:gNAXtpqAqW2;Lzg9LtG1xg3&dimension=pe:2009;2010;2011;2012;2013;2014;2015;2016;2017;2018&dimension=ou:jUb8gELQApl;fdc6uOvgoji;O6uvpzGd5pu;qhqAxPSTUXp;Vth0fbpFcsO;eIQbndfxQMb;at6UHUQatSo;kJq2mPyFEHo;bL4ooGhyHRQ;jmIPBj66vD6;PMa2VCrupOd;TEQlaapDQoK;lc3eMKXaEfw&displayProperty=NAME&skipMeta=false'
-
-            #url = 'https://play.dhis2.org/2.28/api/analytics.json?dimension=dx:gNAXtpqAqW2;Lzg9LtG1xg3&dimension=pe:2016Q1:2016Q2:2016Q3:2016Q4:2017Q1:2017Q2:2017Q3:2017Q4:2018Q1:2018Q2&dimension=ou:jUb8gELQApl;fdc6uOvgoji;O6uvpzGd5pu;qhqAxPSTUXp;Vth0fbpFcsO;eIQbndfxQMb;at6UHUQatSo;kJq2mPyFEHo;bL4ooGhyHRQ;jmIPBj66vD6;PMa2VCrupOd;TEQlaapDQoK;lc3eMKXaEfw&displayProperty=NAME&skipMeta=false'
-
-            #url = 'https://play.dhis2.org/2.28/api/analytics.json?dimension=dx:ReUHfIn0pTQ;gNAXtpqAqW2&dimension=pe:2017&dimension=ou:tw532BgmPMY;Eyj2kiEJ7M3'
-
-            # all level 3 ou, birth last 5 years:
-            # https://play.dhis2.org/2.28/api/analytics.json?dimension=dx:gNAXtpqAqW2&dimension=pe:LAST_5_YEARS&dimension=ou:O6uvpzGd5pu;fdc6uOvgoji;lc3eMKXaEfw;jUb8gELQApl;PMa2VCrupOd;kJq2mPyFEHo;qhqAxPSTUXp;Vth0fbpFcsO;jmIPBj66vD6;TEQlaapDQoK;bL4ooGhyHRQ;eIQbndfxQMb;at6UHUQatSo
-
             # ALWAYS grab url from dialog, as it is possible that user copied changed something there
             self.analytics_url = self.dlg.le_url.text()
             url = self.analytics_url
@@ -460,6 +470,7 @@ class DHIS2DataFetcher:
         for lname in p.mapLayers():
             lyr = p.mapLayer(lname)
             url = lyr.customProperty('dhis2_url', '')
+            # TODO also authid to use!! Either saved or find it in profiles
             if len(url) > 0:
                 #self.info('OK url !!')
                 self.info(url)
@@ -552,6 +563,55 @@ class DHIS2DataFetcher:
         # 'save' the data url of the layer into the project properties
         # https://docs.qgis.org/testing/en/docs/pyqgis_developer_cookbook/settings.html
         data_layer.setCustomProperty("dhis2_url", url)
+
+
+    def selectAuthConfig(self):
+        # to be able to run while authmanager was crashing...
+        # self.api_url = 'https://play.dhis2.org/2.29/api/'
+        # self.auth_id = 'dhis2ap'
+        # return True
+        if self.auth_dlg is None:
+            self.auth_dlg = AuthConfigSelectDialog(self.iface.mainWindow())
+        self.auth_dlg.show()
+        result = self.auth_dlg.exec_()
+        if result:
+            conf_id = self.auth_dlg.select.configId()
+            self.api_url = None
+            if len(conf_id) > 0:
+                auth_man = QgsApplication.authManager()
+                uri = auth_man.availableAuthMethodConfigs()[conf_id].uri()
+                if uri.startswith('http'):
+                    # make sure it ends with /
+                    if not uri.endswith('/'):
+                        uri = uri + '/'
+                    self.api_url = uri
+                    self.auth_id = conf_id
+                    # Set authid to use to 'dhis2ap' which has api url: https://play.dhis2.org/2.29/api/
+                    self.info("Set authid to use to '{}' which has api url: {}".format(self.auth_id, self.api_url))
+
+                    # note: user has to create an authenticaton configuration with id 'self.auth_id' to authorize the HTTP requests
+                    self.nam = NetworkAccessManager(authid=self.auth_id, exception_class=RequestsException, debug=False)
+                    self.initDropdowns()
+                    return True
+        self.info("Problem setting authid or url??? DHIS2 Api not reachable!")
+
+        return False
+
+class AuthConfigSelectDialog(QDialog):
+    def __init__(self, parent):
+        QDialog.__init__(self, parent)
+        self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        #self.setLayout(QGridLayout())
+        self.setLayout(QVBoxLayout())
+        #self.layout().setContentsMargins(0, 0, 0, 0)
+        self.select = QgsAuthConfigSelect()
+        #self.layout().addWidget(self.select, 0, 0, 2, Qt.AlignLeft)
+        self.layout().addWidget(self.select)
+        self.buttonbox = QDialogButtonBox(QDialogButtonBox.Cancel|QDialogButtonBox.Ok)
+        #self.layout().addWidget(self.buttonbox, 1, 0, 2, Qt.AlignRight)
+        self.layout().addWidget(self.buttonbox)
+        self.buttonbox.accepted.connect(self.accept)
+        self.buttonbox.rejected.connect(self.reject)
 
 
 
