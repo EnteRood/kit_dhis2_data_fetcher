@@ -6,15 +6,22 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1062</width>
-    <height>250</height>
+    <width>1085</width>
+    <height>331</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>KIT - DHIS2 Data Fetcher</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="12" column="0" colspan="2">
+   <item row="0" column="0">
+    <widget class="QLabel" name="label_4">
+     <property name="text">
+      <string>Choose (or create) an DHIS2 service endpoint:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="0" colspan="2">
     <widget class="QDialogButtonBox" name="button_box">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
@@ -24,77 +31,89 @@
      </property>
     </widget>
    </item>
-   <item row="5" column="1">
-    <widget class="QComboBox" name="cb_ou"/>
-   </item>
-   <item row="6" column="1">
-    <widget class="QComboBox" name="cb_pe"/>
-   </item>
-   <item row="6" column="0">
-    <widget class="QLabel" name="label_2">
-     <property name="text">
-      <string>Period (pe):</string>
-     </property>
-    </widget>
-   </item>
-   <item row="7" column="0">
-    <widget class="QLabel" name="label_3">
-     <property name="text">
-      <string>DataElements and Indicators (dx):</string>
-     </property>
-    </widget>
-   </item>
-   <item row="7" column="1">
-    <widget class="QComboBox" name="cb_dx"/>
-   </item>
-   <item row="4" column="1">
-    <widget class="QComboBox" name="cb_level">
-     <item>
-      <property name="text">
-       <string>2</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>3</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>4</string>
-      </property>
-     </item>
-    </widget>
-   </item>
-   <item row="5" column="0">
-    <widget class="QLabel" name="label">
-     <property name="text">
-      <string>Organisational Unit (ou):</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="0" colspan="2">
-    <widget class="QLineEdit" name="le_url"/>
-   </item>
-   <item row="4" column="0">
-    <widget class="QPushButton" name="btn_load_geodata">
-     <property name="text">
-      <string>Level  -  click this button to load geodata in a layer, level:</string>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="0">
-    <widget class="QPushButton" name="btn_new_dataset">
-     <property name="text">
-      <string>New Dataset / Clean url</string>
-     </property>
-    </widget>
-   </item>
    <item row="0" column="1">
-    <widget class="QPushButton" name="btn_api_config">
+    <widget class="QPushButton" name="cmb_profile_select">
      <property name="text">
-      <string>Country / API config</string>
+      <string>&lt; placeholder replaced by QgsAuthConfigSelect in code &gt;</string>
      </property>
+    </widget>
+   </item>
+   <item row="2" column="0" colspan="2">
+    <widget class="QGroupBox" name="grp_api">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="title">
+      <string>DHIS2 service</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="0" column="0" colspan="2">
+       <widget class="QLineEdit" name="le_url"/>
+      </item>
+      <item row="1" column="1">
+       <widget class="QPushButton" name="btn_new_dataset">
+        <property name="text">
+         <string>New Dataset / Clean url</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QPushButton" name="btn_load_geodata">
+        <property name="text">
+         <string>Level  -  click this button to load geodata in a layer, level:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QComboBox" name="cb_level">
+        <item>
+         <property name="text">
+          <string>2</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>3</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>4</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Organisational Unit (ou):</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QComboBox" name="cb_ou"/>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>Period (pe):</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QComboBox" name="cb_pe"/>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>DataElements and Indicators (dx):</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="QComboBox" name="cb_dx"/>
+      </item>
+     </layout>
     </widget>
    </item>
   </layout>

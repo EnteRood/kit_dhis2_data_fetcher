@@ -10,7 +10,7 @@
 name=Kit - DHIS2 Data Fetcher
 qgisMinimumVersion=3.0
 description=KIT plugin to Fetch Data and Geodata from DHIS2 demo server
-version=0.1.1
+version=0.2.0
 author=Zuidt
 email=richard@zuidt.nl
 
@@ -29,6 +29,7 @@ repository=https://github.com/rduivenvoorde/kit_dhis2_data_fetcher
 
 # Uncomment the following line and add your changelog:
 changelog=
+    0.2.0       add possibility to select authorisation configs and handle connection problems
     0.1.1       remove future module
     0.1.0       initial public release
 
