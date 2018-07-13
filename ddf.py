@@ -444,13 +444,13 @@ class DHIS2DataFetcher:
 
 
     def selectAuthConfig(self, conf_id):
-        self.info('{} selected as conf_id'.format(conf_id))
+        self.info('"{}" selected as conf_id'.format(conf_id))
         QgsSettings().setValue('last_conf_id', conf_id)
         if conf_id is '':
             self.dlg.grp_api.setEnabled(False)
         else:
             auth_man = QgsApplication.authManager()
-            uri = auth_man.availableAuthMethodConfigs()[conf_id].uri()
+            uri = auth_man.availableAuthMethodConfigs()[conf_id].uri().strip()
             if uri.startswith('http'):
                 # make sure it ends with /
                 if not uri.endswith('/'):
@@ -466,6 +466,8 @@ class DHIS2DataFetcher:
                     self.dlg.grp_api.setEnabled(True)
                 else:
                     self.dlg.grp_api.setEnabled(False)
+            else:
+                self.info('Uri should start with "http", now it is: "{}"'.format(uri))
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
