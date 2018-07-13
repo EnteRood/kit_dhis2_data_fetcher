@@ -55,18 +55,20 @@ class DHIS2DataFetcher:
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
         # initialize locale
+        self.MSG_TITLE = self.tr('DHIS2 datafetcher')
         locale = QSettings().value('locale/userLocale')[0:2]
+        self.info('Locale: "{}"'.format(locale))
         locale_path = os.path.join(
             self.plugin_dir,
             'i18n',
-            'DHIS2DataFetcher_{}.qm'.format(locale))
-
+            '{}.qm'.format(locale))
         if os.path.exists(locale_path):
             self.translator = QTranslator()
             self.translator.load(locale_path)
             QCoreApplication.installTranslator(self.translator)
+        else:
+            self.info('Locale niet gevonden: "{}"'.format(locale_path))
 
-        self.MSG_TITLE = self.tr('DHIS2 datafetcher')
         # start a group/dir for all settings
         self.SETTINGS_GROUP = self.tr('dhis2datafetcher')
         QgsSettings().beginGroup(self.SETTINGS_GROUP, QgsSettings.Plugins)
