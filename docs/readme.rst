@@ -5,11 +5,11 @@ KIT - DHIS2 Data Fetcher Plugin
 Introduction
 ------------
 
-This plugin makes it possible to 'talk' to the play.dhis2.org demo server with QGIS
+This plugin makes it possible to 'talk' to the play.dhis2.org demo server (or any other DHIS2-api server) with QGIS.
 
 In that way one can retrieve Geodata (Polygons and Points) AND the actual tabular data.
 
-By 'joining' the Geodata and the Tabular data on (organisationalUnit-id) one combines two layers.
+By 'joining' the Geodata and the Tabular data (on organisationalUnit-id) one combines two layers.
 
 Saving a project also saves the url's which were used to retrieve the data. So by loading a saved project,
 fresh data will be retrieved from the server and shown in saved style/configurations.
@@ -21,7 +21,7 @@ Before use
 Install QGIS
 ............
 
-Make sure you have installed QGIS-3 (!) This plugin will only work in QGIS 3.x (not in the 2.18 LTR version!)
+Make sure you have installed QGIS-3 (!) This plugin will only work in QGIS 3.x (not working with the 2.18 LTR version!)
 
 Download plugin
 ...............
@@ -31,15 +31,14 @@ Download the latest packaged plugin zip from the `repo directory on Github <http
 Install plugin
 ..............
 
-Install the plugin in QGIS. You can do that via the Plugin Manager on the Install from ZIP-tab
+Install the plugin in QGIS. You can do that via the Plugin Manager on the 'Install from ZIP'-tab in the dialog.
 
 .. image:: images/installfromzip.png
 
 Create Authentication
 .....................
 
-The REST api of https://play.dhis2.org needs Basic Authentication (admin/district). So first create the valid
-(named dhis2ap) authentication configuration.
+The REST api of https://play.dhis2.org needs Basic Authentication (admin/district for all demo's). So first create a valid authentication configuration.
 
 In the Settings / Options dialog select the Authentication tab.
 
@@ -47,26 +46,38 @@ If this is the first time you do this you will probably be asked to give an 'mas
 
 Then create a new 'Authentication' by clicking the green plus sign (1).
 
-Fill in the details, most important is you use 'dhis2ap' as 'id' of this configuration (2).
-AND the Username and Password for the demo site.
+Fill in the details (below of the demo site):
 
-After that click Save (3) to save it on disk.
+ * Name: "dhis2api2.28" (or any other descriptive name)
+ * Id: will be generated, don't worry about it
+ * Resource: "https://play.dhis2.org/2.28/api"
+ * Leaf the dropdown with authentication on "Basic authentication"
+ * Username: "admin"
+ * Password: "district"
+ * Reals: "Credentials for play.dhis2.org version 2.28" (or any other descriptive text)
+
+You can connect to other DHIS2 instances as long as you have and use the correct username and password.
+
+After that click Save (2) to save it on disk.
 
 .. image:: images/authenticationconfiguration.png
 
-Now the plugin will use the 'dhis2ap' authentication credentials to authenticate itself at the dhis2 service.
+The same Authenticatation dialog can be found if you click the green plus sign (1) in the empty DHIS2 Data Fetcher Dialog:
 
+.. image:: images/cleandialog.png
+
+Upon creating one or more of this authentication configurations, they will show up in the 'service endpoint' dropdown (1) in the main dialog.
 
 First use
 ---------
 
-If the plugins is succesfully installed you should see a 'KIT' button in your menubars (1).
+If the plugin is succesfully installed you should see a 'KIT' button in your menubars (1).
 
 And an extra menu item in your Plugins menu named 'KIT - DHIS2 Data Fetcher' (2).
 
 .. image:: images/startplugin.png
 
-If you added your credentials, upon clicking on the button, an dialog will be shown (empty, but dropdowns will
+If you added your authentication configuration, upon clicking on the button, an dialog will be shown. Initially empty (as the image above), but if you select one of your DHIS2 service endpoints, dropdowns will
 be filled dynamic by pulling the information from the server:
 
 .. image:: images/dialogempty.png
